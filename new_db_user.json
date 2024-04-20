@@ -1,0 +1,38 @@
+{
+    "db_name": "Postgres",
+    "username": "postgres",
+    "password": "postgres",
+    "rotation_period": "12h",
+    "creation_statements": [
+      "CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}'",
+      "GRANT SELECT ON *.* TO '{{name}}'@'%'"
+    ],
+    "password_policy": {
+        "length": 20,
+        "rule": [
+          {
+            "name": "charset",
+            "charset": "abcdefghijklmnopqrstuvwxyz",
+            "min-chars": 1
+          },
+          {
+            "name": "charset",
+            "charset": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "min-chars": 1
+          },
+          {
+            "name": "charset",
+            "charset": "0123456789",
+            "min-chars": 1
+          },
+          {
+            "name": "charset",
+            "charset": "!@#$%^&*",
+            "min-chars": 1
+          }
+        ]
+    },
+      
+    "default_ttl": "1h",
+    "max_ttl": "24h"
+  }
