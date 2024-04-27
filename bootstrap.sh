@@ -85,7 +85,7 @@ generate_vault_auth(){
     echo $response
 }
 vault_authenticate(){
-    key=$(curl \
+    key=$(curl -k -s\
     --request POST \
     --data '{"password": '$password'}' \
     $VAULT_ADDR/v1/auth/userpass/login/$HOSTNAME)
