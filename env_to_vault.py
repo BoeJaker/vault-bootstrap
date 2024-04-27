@@ -1,4 +1,3 @@
-
 """
 Recursively Converts .env data into vault entries
 Great for converting docker .env files into vault records
@@ -31,4 +30,3 @@ directory_to_search = '/home/boejaker/BACKUPS/Master/Dev/Docker_Containers/Produ
 
 # Execute function to add .env files to Vault
 add_env_files_to_vault(directory_to_search)
-
