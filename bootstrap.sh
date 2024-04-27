@@ -84,7 +84,14 @@ generate_vault_auth(){
     response="$(curl -k -s -X POST -H "X-Vault-Token: $VAULT_TOKEN" -d "$auth_config"  "$VAULT_ADDR/v1/auth/userpass/users/$HOSTNAME")"
     echo $response
 }
+vault_authenticate(){
+    key=$(curl \
+    --request POST \
+    --data '{"password": '$password'}' \
+    $VAULT_ADDR/v1/auth/userpass/login/$HOSTNAME)
 
+    echo $key
+}
 generate_client_certificate() {
     openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout $SECRETPATH/client.key -out ./client.crt -subj "/CN=$HOSTNAME"
 }
@@ -225,7 +232,19 @@ main() {
     # TODO: bootstrap or rebuild? If bootstrap generate client values if rebuild pull client values
     decrypt_env ; echo
     generate_client_user ; echo
+    # Lockdown Secrets path permission
+    if [ "$PROD_MODE" == "true" ] ; then 
+        chmod 500 $SECRETPATH
+
+        # chattr +i $SECRETPATH # Set the immutable attribute on the secrets directory to prevent it from being deleted
+
+        # Since root can override file permissions, you need to further restrict access using access control lists (ACLs). 
+        setfacl -m u:$username:--- $SECRETPATH
+        setfacl -m u:root:r-x $SECRETPATH
+    fi
     generate_vault_auth ; echo
+    VAULT_TOKEN=$(vault_authenticate)
+    echo $VAULT_TOKEN
     generate_client_certificate ; echo  # Generate client certificate
     generate_pgp_key ; echo
     store_client_secrets ; echo # Store client certificate in Vault
@@ -268,17 +287,6 @@ main() {
 
 apt update
 apt install openssl gpg curl jq acl -y # ecryptfs
-
-# Lockdown Secrets path permission
-if [ "$PROD_MODE" == "true" ] ; then 
-    chmod 500 $SECRETPATH
-
-    chattr +i /path/to/secrets_directory # Set the immutable attribute on the secrets directory to prevent it from being deleted
-
-    # Since root can override file permissions, you need to further restrict access using access control lists (ACLs). 
-    setfacl -m u:$username:--- $SECRETPATH
-    setfacl -m u:root:r-x $SECRETPATH
-fi
 
 main
 
